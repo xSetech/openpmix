@@ -61,16 +61,21 @@ AC_DEFUN([PMIX_LIBEVENT_CONFIG],[
            pmix_check_libevent_save_LIBS="$LIBS"
 
            AS_IF([test "$enable_libevent_lib_checks" != "no"],
-                 [dnl Do not use pkg-config for libevent, because we need the pthreads interface
-                  dnl and the libevent_pthreads module will always pull in libevent instead of
-                  dnl libevent_core.
-                  libevent_USE_PKG_CONFIG=0
+                 [dnl Use libevent_core as the pkg-config module so that we do not
+                  dnl transitively pull in the monolithic libevent library via the
+                  dnl libevent_pthreads module's Requires: dependency.
+                  m4_define([libevent_pkgconfig_module], [libevent_core])
                   OAC_CHECK_PACKAGE([libevent],
                                     [pmix_libevent],
                                     [event.h],
                                     [event_core event_pthreads $with_libevent_extra_libs],
                                     [event_config_new],
-                                    [],
+                                    [dnl When pkg-config is used, OAC_CHECK_PACKAGE sets LIBS from
+                                     dnl the .pc file (libevent_core only).  We need event_pthreads
+                                     dnl as well, so override LIBS to include the full set.
+                                     AS_IF([test "${pmix_libevent_DETECT_METHOD}" = "pkg-config"],
+                                           [pmix_libevent_LIBS="-levent_core -levent_pthreads $with_libevent_extra_libs"
+                                            pmix_libevent_STATIC_LIBS="-levent_core -levent_pthreads $with_libevent_extra_libs"])],
                                     [pmix_libevent_support=0])],
                  [PMIX_FLAGS_APPEND_UNIQ([PMIX_DELAYED_LIBS], [$with_libevent_extra_libs])])])
 
