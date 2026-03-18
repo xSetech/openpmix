@@ -279,6 +279,21 @@ AC_DEFUN([PMIX_SETUP_CC],[
         AC_MSG_WARN([-g has been added to CFLAGS (--enable-debug)])
     fi
 
+    # Do we want LTO?
+    if test "$PMIX_LTO_MODE" != "none" && test "$PMIX_LTO_MODE" != ""; then
+        AS_IF([test "$PMIX_LTO_MODE" = "thin"],
+              [pmix_lto_flag="-flto=thin"],
+              [pmix_lto_flag="-flto"])
+
+        _PMIX_CHECK_SPECIFIC_CFLAGS($pmix_lto_flag, lto)
+        if test "$pmix_cv_cc_lto" = "1"; then
+            LDFLAGS="$LDFLAGS $pmix_lto_flag"
+            AC_MSG_WARN([$pmix_lto_flag has been added to CFLAGS and LDFLAGS (--with-lto)])
+        else
+            AC_MSG_ERROR([LTO flag $pmix_lto_flag is not supported by $CC])
+        fi
+    fi
+
     # These flags are generally gcc-specific; even the
     # gcc-impersonating compilers won't accept them.
     PMIX_CFLAGS_BEFORE_PICKY="$CFLAGS"

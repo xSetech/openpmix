@@ -1168,6 +1168,25 @@ AC_ARG_ENABLE(debug-symbols,
               AS_HELP_STRING([--disable-debug-symbols],
                              [Disable adding compiler flags to enable debugging symbols if --enable-debug is specified.  For non-debugging builds, this flag has no effect.]))
 
+#
+# Link-time optimization
+#
+AC_MSG_CHECKING([if want link-time optimization])
+AC_ARG_WITH([lto],
+    [AS_HELP_STRING([--with-lto(=thin|full)],
+                    [Enable link-time optimization (default: disabled). Options: thin, full])])
+AS_IF([test -z "$with_lto" || test "$with_lto" = "no"],
+      [PMIX_LTO_MODE=none
+       AC_MSG_RESULT([no])],
+      [AS_IF([test "$with_lto" = "thin"],
+             [PMIX_LTO_MODE=thin
+              AC_MSG_RESULT([thin])],
+             [AS_IF([test "$with_lto" = "full" || test "$with_lto" = "yes"],
+                    [PMIX_LTO_MODE=full
+                     AC_MSG_RESULT([full])],
+                    [AC_MSG_RESULT([unknown])
+                     AC_MSG_ERROR([Invalid --with-lto value "$with_lto". Use "thin" or "full".])])])])
+
 AC_MSG_CHECKING([if want to install PMIx header files])
 AC_ARG_WITH(pmix-headers,
     AS_HELP_STRING([--with-pmix-headers],
